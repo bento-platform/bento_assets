@@ -3,8 +3,8 @@
 # Action triggers:
 # - Commits on 'main': instances changed by the push, tagged with the short commit sha and 'edge'
 # - Pull requests: instances changed by the PR, tagged 'pr-<PR number>'
-# - Release: the instance named by the release tag '<instance>-<x.y.z>' (e.g. 'dev-0.1.0'),
-#   tagged 'x.y.z', 'x.y' and 'latest' (pre-releases: 'x.y.z' only)
+# - Release: the instance named by the release tag '<instance>-<x.y.z>' (e.g. 'dev-26.0.0'),
+#   tagged 'x.y.z', 'x.y' and 'x' (pre-releases: 'x.y.z' only). The major version is the Bento release.
 name: Build and Publish Asset Images
 
 on:
@@ -82,7 +82,7 @@ jobs:
               ;;
             release)
               if [[ ! "$RELEASE_TAG" =~ ^([a-z0-9]+(-[a-z0-9]+)*)-([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
-                echo "::error::Release tag '${RELEASE_TAG}' must be <instance>-<x.y.z>, e.g. dev-0.1.0"
+                echo "::error::Release tag '${RELEASE_TAG}' must be <instance>-<x.y.z>, e.g. dev-26.0.0"
                 exit 1
               fi
               instance="${BASH_REMATCH[1]}"
@@ -153,7 +153,7 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}},value=${{ needs.plan.outputs.version }},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.plan.outputs.version }},enable=${{ github.event_name == 'release' }}
-            type=raw,value=latest,enable=${{ github.event_name == 'release' && !github.event.release.prerelease }}
+            type=semver,pattern={{major}},value=${{ needs.plan.outputs.version }},enable=${{ github.event_name == 'release' }}
 
       # No RUN steps in the Dockerfile, so arm64 builds without QEMU
       - name: Build and push image
