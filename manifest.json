@@ -5,6 +5,10 @@
       "target": "/bento-public/dist/public/en_about.html"
     },
     {
+      "source": "dummy.txt",
+      "target": "dumber.txt"
+    },
+    {
       "source": "public/fr_about.html",
       "target": "/bento-public/dist/public/fr_about.html",
       "optional": true
