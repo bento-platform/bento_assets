@@ -1,0 +1,168 @@
+##### Instance asset images build & publish
+# Builds one image per instance, ghcr.io/bento-platform/bento-assets-<instance>, and publishes it to GHCR.
+# Action triggers:
+# - Commits on 'main': instances changed by the push, tagged with the short commit sha and 'edge'
+# - Pull requests: instances changed by the PR, tagged 'pr-<PR number>'
+# - Release: the instance named by the release tag '<instance>-<x.y.z>' (e.g. 'dev-0.1.0'),
+#   tagged 'x.y.z', 'x.y' and 'latest' (pre-releases: 'x.y.z' only)
+name: Build and Publish Asset Images
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [published]
+
+# Newer commits on a PR cancel its older runs. Other runs never cancel each other: a push only builds the
+# instances it changed, so a cancelled run would leave those instances without an 'edge' image.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      # Lets paths-filter list a PR's changed files
+      pull-requests: read
+
+    outputs:
+      instances: ${{ steps.select.outputs.instances }}
+      version: ${{ steps.select.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Pushes to main are compared with the previous commit, PRs with their base branch
+      - name: Detect changes
+        id: changes
+        if: github.event_name != 'release'
+        uses: dorny/paths-filter@v3
+        with:
+          list-files: json
+          filters: |
+            instances:
+              - added|modified: 'instances/**'
+            # Files that go into every image
+            shared:
+              - Dockerfile
+              - LICENSE
+              - manifest.json
+              - scripts/install.py
+              - .github/workflows/build.yml
+
+      - name: Select instances to build
+        id: select
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SHARED_CHANGED: ${{ steps.changes.outputs.shared }}
+          INSTANCE_FILES: ${{ steps.changes.outputs.instances_files }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          case "$EVENT_NAME" in
+            push | pull_request)
+              if [[ "$SHARED_CHANGED" == true ]]; then
+                instances="$(find instances -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | jq -cnR '[inputs]')"
+              else
+                # instances/<name>/... -> <name>
+                instances="$(jq -c 'map(split("/")[1]) | unique' <<< "${INSTANCE_FILES:-[]}")"
+              fi
+              ;;
+            release)
+              if [[ ! "$RELEASE_TAG" =~ ^([a-z0-9]+(-[a-z0-9]+)*)-([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
+                echo "::error::Release tag '${RELEASE_TAG}' must be <instance>-<x.y.z>, e.g. dev-0.1.0"
+                exit 1
+              fi
+              instance="${BASH_REMATCH[1]}"
+              version="${BASH_REMATCH[3]}"
+              if [[ ! -d "instances/${instance}" ]]; then
+                echo "::error::Release tag '${RELEASE_TAG}' names instance '${instance}', but instances/${instance} does not exist"
+                exit 1
+              fi
+              instances="$(jq -cn --arg instance "$instance" '[$instance]')"
+              echo "version=${version}" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+          echo "Instances to build: ${instances}"
+          echo "instances=${instances}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.instances != '[]'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        instance: ${{ fromJSON(needs.plan.outputs.instances) }}
+
+    env:
+      INSTANCE: ${{ matrix.instance }}
+      # Pull requests from forks get a read-only token: build their images without pushing them
+      PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Also guards releases, which the Validate workflow does not run on
+      - name: Validate instance
+        run: python3 scripts/validate.py "$INSTANCE"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        if: env.PUSH == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up image metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ghcr.io/bento-platform/bento-assets-${{ matrix.instance }}
+          flavor: |
+            latest=false
+          labels: |
+            org.opencontainers.image.title=bento-assets-${{ matrix.instance }}
+            org.opencontainers.image.description=Bento assets for the ${{ matrix.instance }} instance
+          tags: |
+            type=raw,value=edge,enable=${{ github.event_name == 'push' }}
+            type=sha,prefix=sha-,enable=${{ github.event_name == 'push' }}
+            type=ref,event=pr
+            type=semver,pattern={{version}},value=${{ needs.plan.outputs.version }},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.plan.outputs.version }},enable=${{ github.event_name == 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' && !github.event.release.prerelease }}
+
+      # No RUN steps in the Dockerfile, so arm64 builds without QEMU
+      - name: Build and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          build-args: |
+            INSTANCE=${{ matrix.instance }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ env.PUSH == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
