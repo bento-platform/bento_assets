@@ -3,6 +3,11 @@
 Checks instances against manifest.json: valid name, required files present, no unlisted files, valid JSON.
 
 Usage: scripts/validate.py [INSTANCE...]   (default: every instance)
+
+Uses Python standard library packages only atm for simplicity.
+We may want to include dependencies later, e.g. to validate discovery configs.
+Would not impact ARM QEMU builds since this script only validates the assets 
+before the build occurs.
 """
 
 import json

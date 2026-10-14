@@ -2,9 +2,10 @@
 """
 Copies an instance's assets for the given services to the paths those services read them from.
 
-This is the entrypoint of the bento-assets-<instance> images. Run it in an init container that mounts a
-volume where the files belong (e.g. /bento-public/public/public for public), and mount the same volume in
-the service's container. manifest.json maps each file to its container path.
+Sources and destinations are determined by the manifest.json file.
+
+Uses Python standard library packages only, making it possible to build ARM arch images 
+without QEMU emulation for speedup.
 """
 
 import argparse
