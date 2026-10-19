@@ -1,11 +1,17 @@
 /*
-Instance CSS styles, e.g., configuring your own webfont or overriding Bento CSS variables.
-Some theme tokens from Ant Design can also be overridden here as desired (with the exception of primary color, which
-should not be set via CSS):
+PCGL instance CSS: Work Sans webfont + Ant Design font family override.
+*/
 
+@import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,300..700;1,300..700&display=swap");
+
+:root,
 .bento-theme {
-  --ant-font-family: "Helvetica", sans-serif;
+  --ant-font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
 }
 
-See https://ant.design/docs/react/customize-theme for more information on available theme tokens.
-*/
+/* Non-Ant elements (body text, chart SVG labels, etc.) should use the same font */
+body,
+svg text {
+  font-family: var(--ant-font-family);
+}
