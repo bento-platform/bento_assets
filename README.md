@@ -44,6 +44,17 @@ Each service key contains an array of assets, each item consisting of the follow
   - To use images as bootstrap commands to init files, not for init containers
   - e.g. `bentoctl init-assets`
 
+> [!IMPORTANT]
+> Why have two "target" values for assets?
+>
+> For Kubernetes scenarios, it is preferable to use init containers to copy assets in the container where it 
+> needs them. Here the `target` value is used.
+>
+> For Docker Compose scenarios (e.g. `bentoctl`), init containers are not used, instead the assets are copied at the 
+> appropriate location under Bento's `./lib` directory, and then mounted normally. Here the `target_lib` value is used.
+>
+> **The expected paths in the 2 scenarios are different, so for now the 2 need to be maintained.**
+
 > [!NOTE]
 > French assets (logos and translations) are optional since these are not needed on 
 > every instance.

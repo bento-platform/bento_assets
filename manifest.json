@@ -14,23 +14,23 @@
     {
       "source": "public/branding.png",
       "target": "/bento-public/dist/public/assets/branding.png",
-      "target_lib": "/target-lib/public/assets/branding.png"
+      "target_lib": "/target-lib/public/branding.png"
     },
     {
       "source": "public/branding.fr.png",
       "target": "/bento-public/dist/public/assets/branding.fr.png",
-      "target_lib": "/target-lib/public/assets/branding.fr.png",
+      "target_lib": "/target-lib/public/branding.fr.png",
       "optional": true
     },
     {
       "source": "public/branding.lightbg.png",
       "target": "/bento-public/dist/public/assets/branding.lightbg.png",
-      "target_lib": "/target-lib/public/assets/branding.lightbg.png"
+      "target_lib": "/target-lib/public/branding.lightbg.png"
     },
     {
       "source": "public/branding.lightbg.fr.png",
       "target": "/bento-public/dist/public/assets/branding.lightbg.fr.png",
-      "target_lib": "/target-lib/public/assets/branding.lightbg.fr.png",
+      "target_lib": "/target-lib/public/branding.lightbg.fr.png",
       "optional": true
     },
     {
@@ -41,17 +41,17 @@
     {
       "source": "public/instance.css",
       "target": "/bento-public/dist/public/styles/instance.css",
-      "target_lib": "/target-lib/public/styles/instance.css"
+      "target_lib": "/target-lib/public/instance.css"
     },
     {
       "source": "public/translations/en.json",
       "target": "/bento-public/dist/public/locales/en/translation_en.json",
-      "target_lib": "/target-lib/public/locales/en/translation_en.json"
+      "target_lib": "/target-lib/public/translations/en.json"
     },
     {
       "source": "public/translations/fr.json",
       "target": "/bento-public/dist/public/locales/fr/translation_fr.json",
-      "target_lib": "/target-lib/public/locales/fr/translation_fr.json",
+      "target_lib": "/target-lib/public/translations/fr.json",
       "optional": true
     }
   ],
