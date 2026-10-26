@@ -14,7 +14,7 @@
     {
       "source": "public/branding.png",
       "target": "/bento-public/dist/public/assets/branding.png",
-      "target_lib": "/bento-lib/public/assets/branding.png"
+      "target_lib": "/bento-lib/public/branding.png"
     },
     {
       "source": "public/branding.fr.png",
