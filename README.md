@@ -175,6 +175,7 @@ export CONTAINER_MOUNT="/bento-lib" # top level parent dir of target_lib entries
 # Omitting the service names in the entrypoint defaults to all services now.
 docker run --user $ASSETS_UID:$ASSETS_GID \
   --rm \
+  -e USE_LIB_TARGET \
   -v $HOST_MOUNT:$CONTAINER_MOUNT \
   ghcr.io/bento-platform/bento-assets-dev:edge
 
@@ -184,5 +185,5 @@ docker run --user $ASSETS_UID:$ASSETS_GID \
   -v $HOST_MOUNT:$CONTAINER_MOUNT \
   -e USE_LIB_TARGET \
   ghcr.io/bento-platform/bento-assets-dev:edge \
-  public
+  web katsu
 ```
