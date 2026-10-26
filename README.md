@@ -29,7 +29,20 @@ Each instance gets its own image, `ghcr.io/bento-platform/bento-assets-<instance
 
 To add a client, copy `instances/dev/` (Bento's stock defaults), replace the files and open a PR. CI runs `python3 scripts/validate.py <name>`, which you can also run locally.
 
-Each `manifest.json` entry gives a file's `source` under `lib/`, its `target` in the service's container, and whether it is `optional`.
+## `manifest.json`
+
+The [manifest.json](./manifest.json) file represents the inventory of required and optional public assets files.
+The manifest is used at build time for validation, and in the entrypoint to copy sources to the desired targets.
+
+Top level keys correspond to Bento services: `public`, `web`, `katsu`, `beacon`, `auth`.
+
+Each service key contains an array of assets, each item consisting of the following:
+- `source`: the source path of the asset built in the image
+- `target`: the path expected in the service's container, where the source will be copied
+  - To use images as an init containers
+- `target_lib`: the path expected in the service's directory under [Bento's lib path](https://github.com/bento-platform/bento/tree/main/lib)
+  - To use images as bootstrap commands to init files, not for init containers
+  - e.g. `bentoctl init-assets`
 
 > [!NOTE]
 > French assets (logos and translations) are optional since these are not needed on 
@@ -37,6 +50,7 @@ Each `manifest.json` entry gives a file's `source` under `lib/`, its `target` in
 >
 > TODO: consider adding per-instance manifest overrides so we can mark French assets 
 > as required where it applies (e.g. BQC19, PCGL).
+
 
 ## Creating a new instance
 
@@ -137,38 +151,37 @@ The init container runs for each new pod, so changing the image tag rolls out ne
 With ArgoCD and the image updater controller, we can automatically update the deployed assets for minor and patch versions 
 simply by publishing a new assets image.
 
-### Docker Compose
+### Docker Compose files init
 
-```yaml
-x-public-asset: &public-asset
-  type: volume
-  source: public-assets
-  read_only: true
+In a Docker Compose context, like when using `bentoctl`, using init containers is not necessary.
 
-services:
-  assets:
-    image: ghcr.io/bento-platform/bento-assets-dev:edge
-    command: [public]
-    volumes:
-      - public-assets:/bento-public/dist/public
+In this context, you can simply execute the image's entry point for the service(s) you need, this copies the files from 
+the image under Bento's `./lib` directory.
 
-  public:
-    image: ghcr.io/bento-platform/bento_public:1.1.0
-    depends_on:
-      assets:
-        condition: service_completed_successfully
-    volumes:
-      - {<<: *public-asset, volume: {subpath: en_about.html}, target: /bento-public/dist/public/en_about.html}
-      - {<<: *public-asset, volume: {subpath: fr_about.html}, target: /bento-public/dist/public/fr_about.html}
-      - {<<: *public-asset, volume: {subpath: assets/branding.png}, target: /bento-public/dist/public/assets/branding.png}
-      - {<<: *public-asset, volume: {subpath: assets/branding.fr.png}, target: /bento-public/dist/public/assets/branding.fr.png}
-      - {<<: *public-asset, volume: {subpath: assets/branding.lightbg.png}, target: /bento-public/dist/public/assets/branding.lightbg.png}
-      - {<<: *public-asset, volume: {subpath: assets/branding.lightbg.fr.png}, target: /bento-public/dist/public/assets/branding.lightbg.fr.png}
-      - {<<: *public-asset, volume: {subpath: assets/icon_small.png}, target: /bento-public/dist/public/assets/icon_small.png}
-      - {<<: *public-asset, volume: {subpath: styles/instance.css}, target: /bento-public/dist/public/styles/instance.css}
-      - {<<: *public-asset, volume: {subpath: locales/en/translation_en.json}, target: /bento-public/dist/public/locales/en/translation_en.json}
-      - {<<: *public-asset, volume: {subpath: locales/fr/translation_fr.json}, target: /bento-public/dist/public/locales/fr/translation_fr.json}
+For instance, from the root dir of a Bento deployment.
+```bash
+# Specify that the assets should be copied according to 'target_lib' targets
+export USE_LIB_TARGET=true
 
-volumes:
-  public-assets:
+# UID and GID so your user owns the copied files instead of 'root'
+export ASSETS_UID=$(id -u)
+export ASSETS_GID=$(id -g)
+
+# Set volume mappings
+export HOST_MOUNT=./lib             # local Bento lib/ dir
+export CONTAINER_MOUNT="/bento-lib" # top level parent dir of target_lib entries
+
+# Execute bento_assets entrypoint for ALL services
+# Omitting the service names in the entrypoint defaults to all services now.
+docker run --user $ASSETS_UID:$ASSETS_GID \
+  --rm \
+  -v $HOST_MOUNT:$CONTAINER_MOUNT \
+  ghcr.io/bento-platform/bento-assets-dev:edge
+
+# Execute bento_assets entrypoint for Web and Katsu only
+docker run --user $ASSETS_UID:$ASSETS_GID \
+  --rm \
+  -v $HOST_MOUNT:$CONTAINER_MOUNT \
+  ghcr.io/bento-platform/bento-assets-dev:edge \
+  web katsu
 ```
