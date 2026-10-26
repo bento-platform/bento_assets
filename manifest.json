@@ -41,7 +41,7 @@
     {
       "source": "public/instance.css",
       "target": "/bento-public/dist/public/styles/instance.css",
-      "target_lib": "/bento-lib/public/styles/instance.css"
+      "target_lib": "/bento-lib/public/instance.css"
     },
     {
       "source": "public/translations/en.json",
