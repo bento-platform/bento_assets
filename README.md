@@ -168,8 +168,8 @@ export ASSETS_UID=$(id -u)
 export ASSETS_GID=$(id -g)
 
 # Set volume mappings
-export HOST_MOUNT=./lib             # local Bento lib/ dir
-export CONTAINER_MOUNT="/bento-lib" # top level parent dir of target_lib entries
+export HOST_MOUNT=./lib               # local Bento lib/ dir
+export CONTAINER_MOUNT="/target-lib"  # top level parent dir of target_lib entries
 
 # Execute bento_assets entrypoint for ALL services
 # Omitting the service names in the entrypoint defaults to all services now.

@@ -3,55 +3,55 @@
     {
       "source": "public/en_about.html",
       "target": "/bento-public/dist/public/en_about.html",
-      "target_lib": "/bento-lib/public/en_about.html"
+      "target_lib": "/target-lib/public/en_about.html"
     },
     {
       "source": "public/fr_about.html",
       "target": "/bento-public/dist/public/fr_about.html",
-      "target_lib": "/bento-lib/public/fr_about.html",
+      "target_lib": "/target-lib/public/fr_about.html",
       "optional": true
     },
     {
       "source": "public/branding.png",
       "target": "/bento-public/dist/public/assets/branding.png",
-      "target_lib": "/bento-lib/public/assets/branding.png"
+      "target_lib": "/target-lib/public/assets/branding.png"
     },
     {
       "source": "public/branding.fr.png",
       "target": "/bento-public/dist/public/assets/branding.fr.png",
-      "target_lib": "/bento-lib/public/assets/branding.fr.png",
+      "target_lib": "/target-lib/public/assets/branding.fr.png",
       "optional": true
     },
     {
       "source": "public/branding.lightbg.png",
       "target": "/bento-public/dist/public/assets/branding.lightbg.png",
-      "target_lib": "/bento-lib/public/assets/branding.lightbg.png"
+      "target_lib": "/target-lib/public/assets/branding.lightbg.png"
     },
     {
       "source": "public/branding.lightbg.fr.png",
       "target": "/bento-public/dist/public/assets/branding.lightbg.fr.png",
-      "target_lib": "/bento-lib/public/assets/branding.lightbg.fr.png",
+      "target_lib": "/target-lib/public/assets/branding.lightbg.fr.png",
       "optional": true
     },
     {
       "source": "public/favicon.png",
       "target": "/bento-public/dist/public/assets/icon_small.png",
-      "target_lib": "/bento-lib/public/assets/icon_small.png"
+      "target_lib": "/target-lib/public/assets/icon_small.png"
     },
     {
       "source": "public/instance.css",
       "target": "/bento-public/dist/public/styles/instance.css",
-      "target_lib": "/bento-lib/public/styles/instance.css"
+      "target_lib": "/target-lib/public/styles/instance.css"
     },
     {
       "source": "public/translations/en.json",
       "target": "/bento-public/dist/public/locales/en/translation_en.json",
-      "target_lib": "/bento-lib/public/locales/en/translation_en.json"
+      "target_lib": "/target-lib/public/locales/en/translation_en.json"
     },
     {
       "source": "public/translations/fr.json",
       "target": "/bento-public/dist/public/locales/fr/translation_fr.json",
-      "target_lib": "/bento-lib/public/locales/fr/translation_fr.json",
+      "target_lib": "/target-lib/public/locales/fr/translation_fr.json",
       "optional": true
     }
   ],
@@ -59,31 +59,31 @@
     {
       "source": "web/branding.png",
       "target": "/web/dist/static/branding.png",
-      "target_lib": "/bento-lib/web/branding.png"
+      "target_lib": "/target-lib/web/branding.png"
     }
   ],
   "katsu": [
     {
       "source": "katsu/config.json",
       "target": "/app/chord_metadata_service/config.json",
-      "target_lib": "/bento-lib/katsu/config.json"
+      "target_lib": "/target-lib/katsu/config.json"
     }
   ],
   "beacon": [
     {
       "source": "beacon/config/beacon_config.json",
       "target": "/config/beacon_config.json",
-      "target_lib": "/bento-lib/beacon/config/beacon_config.json"
+      "target_lib": "/target-lib/beacon/config/beacon_config.json"
     },
     {
       "source": "beacon/config/beacon_cohort.json",
       "target": "/config/beacon_cohort.json",
-      "target_lib": "/bento-lib/beacon/config/beacon_cohort.json"
+      "target_lib": "/target-lib/beacon/config/beacon_cohort.json"
     },
     {
       "source": "beacon/config/beacon_network_config.json",
       "target": "/config/beacon_network_config.json",
-      "target_lib": "/bento-lib/beacon/config/beacon_network_config.json",
+      "target_lib": "/target-lib/beacon/config/beacon_network_config.json",
       "optional": true
     }
   ],
@@ -91,7 +91,7 @@
     {
       "source": "auth/bento-theme/login/resources/img/branding.png",
       "target": "/opt/keycloak/themes/bento-theme/login/resources/img/branding.png",
-      "target_lib": "/bento-lib/auth/bento-theme/login/resources/img/branding.png",
+      "target_lib": "/target-lib/auth/bento-theme/login/resources/img/branding.png",
       "optional": true
     }
   ]
