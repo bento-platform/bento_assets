@@ -39,7 +39,6 @@ def main() -> int:
     # Otherwise, copies the assets to the path that the service container expects.
     # Defined in manifest.json
     target_key = "target_lib" if USE_LIB_TARGET else "target"
-    print(f"Target key: {target_key}")
 
     for service in args.services:
         for file in manifest[service]:

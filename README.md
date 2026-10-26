@@ -182,6 +182,7 @@ docker run --user $ASSETS_UID:$ASSETS_GID \
 docker run --user $ASSETS_UID:$ASSETS_GID \
   --rm \
   -v $HOST_MOUNT:$CONTAINER_MOUNT \
+  -e USE_LIB_TARGET \
   ghcr.io/bento-platform/bento-assets-dev:edge \
-  web katsu
+  public
 ```
