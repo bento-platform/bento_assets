@@ -17,8 +17,8 @@ from pathlib import Path
 
 MANIFEST = Path(os.environ.get("ASSETS_MANIFEST", "/assets/manifest.json"))
 SOURCE_DIR = Path(os.environ.get("ASSETS_SOURCE", "/assets/lib"))
-USE_LIB_TARGET = os.environ.get("USE_LIB_TARGET", "False").lower() in ("true", "1", "yes")
-
+USE_TARGET_LIB = os.environ.get("USE_LIB_TARGET", "False").lower() in ("true", "1", "yes")
+TARGET_LIB_DIR = Path("/target-lib")
 
 def main() -> int:
     manifest = json.loads(MANIFEST.read_text())
@@ -35,25 +35,31 @@ def main() -> int:
         help=f"Ignore for all, or one of: {', '.join(manifest)}")
     args = parser.parse_args()
 
-    # If USE_LIB_TARGET (default False), copy the files in the structure expected by Bento's ./lib directory.
-    # Otherwise, copies the assets to the path that the service container expects.
-    # Defined in manifest.json
-    target_key = "target_lib" if USE_LIB_TARGET else "target"
-
+    issues = []
     for service in args.services:
         for file in manifest[service]:
             source = SOURCE_DIR / file["source"]
-            target = Path(file[target_key])
+            if USE_TARGET_LIB:
+                # preserve source structure
+                target = TARGET_LIB_DIR / file["source"]
+            else:
+                # use container target path
+                target = Path(file["target"])
 
             if not source.is_file():
                 if file.get("optional", False):
                     continue
-                print(f"error: this instance is missing {file['source']}", file=sys.stderr)
-                return 1
+                issues.append(f"Error: {service} could not find required file {file['source']}")
 
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
             print(f"{file['source']} -> {target}")
+
+    # Print issues and return 1 if any
+    if issues:
+        for issue in issues:
+            print(issue, file=sys.stderr)
+        return 1
 
     return 0
 
