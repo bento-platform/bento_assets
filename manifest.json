@@ -30,7 +30,7 @@
     {
       "source": "public/branding.lightbg.fr.png",
       "target": "/bento-public/dist/public/assets/branding.lightbg.fr.png",
-      "target_lib": "/bento-lib/public/assets/branding.lightbg.fr.png",
+      "target_lib": "/bento-lib/public/branding.lightbg.fr.png",
       "optional": true
     },
     {
