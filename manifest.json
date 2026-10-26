@@ -46,7 +46,7 @@
     {
       "source": "public/translations/en.json",
       "target": "/bento-public/dist/public/locales/en/translation_en.json",
-      "target_lib": "/bento-lib/public/locales/en/translation_en.json"
+      "target_lib": "/bento-lib/public/translations/en.json"
     },
     {
       "source": "public/translations/fr.json",
