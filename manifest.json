@@ -19,7 +19,7 @@
     {
       "source": "public/branding.fr.png",
       "target": "/bento-public/dist/public/assets/branding.fr.png",
-      "target_lib": "/bento-lib/public/assets/branding.fr.png",
+      "target_lib": "/bento-lib/public/branding.fr.png",
       "optional": true
     },
     {
