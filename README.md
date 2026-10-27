@@ -37,23 +37,18 @@ The manifest is used at build time for validation, and in the entrypoint to copy
 Top level keys correspond to Bento services: `public`, `web`, `katsu`, `beacon`, `auth`.
 
 Each service key contains an array of assets, each item consisting of the following:
-- `source`: the source path of the asset built in the image
+- `source`: the path of the asset under the instance's `lib/` directory, which mirrors [Bento's lib path](https://github.com/bento-platform/bento/tree/main/lib)
 - `target`: the path expected in the service's container, where the source will be copied
-  - To use images as an init containers
-- `target_lib`: the path expected in the service's directory under [Bento's lib path](https://github.com/bento-platform/bento/tree/main/lib)
-  - To use images as bootstrap commands to init files, not for init containers
-  - e.g. `bentoctl init-assets`
+- `optional` (default `false`): skip the asset instead of failing when it is missing
 
 > [!IMPORTANT]
-> Why have two "target" values for assets?
+> The entrypoint copies assets to one of two places, depending on the deployment:
 >
-> For Kubernetes scenarios, it is preferable to use init containers to copy assets in the container where it 
-> needs them. Here the `target` value is used.
->
-> For Docker Compose scenarios (e.g. `bentoctl`), init containers are not used, instead the assets are copied at the 
-> appropriate location under Bento's `./lib` directory, and then mounted normally. Here the `target_lib` value is used.
->
-> **The expected paths in the 2 scenarios are different, so for now the 2 need to be maintained.**
+> - **Kubernetes (init containers):** each asset is copied to its `target` path, in a volume shared with the
+>   service's container. See [Kubernetes](#kubernetes).
+> - **Docker Compose (e.g. `bentoctl`):** when `ASSETS_LIB_DIR` is set, each asset is copied to
+>   `$ASSETS_LIB_DIR/<source>`, i.e. in place under a mounted Bento `./lib` directory, which the services
+>   then mount normally. See [Docker Compose files init](#docker-compose-files-init).
 
 > [!NOTE]
 > French assets (logos and translations) are optional since these are not needed on 
@@ -114,7 +109,8 @@ docker run --rm -v public-assets:/bento-public/dist/public ghcr.io/bento-platfor
 ```
 
 - Overwrites existing files and skips missing optional ones.
-- Fails on an unknown service or a missing required file.
+- Fails on an unknown service or a missing required file. All required files are checked first, so nothing is copied
+  if any are missing, and every missing file is listed.
 - Mount a volume at each destination, otherwise the copied files are lost with the init container.
   - Bento Public's assets share directories with the image's own files, so mount them one by one with sub paths.
   - Beacon's `/config` can be mounted whole.
@@ -169,32 +165,26 @@ In a Docker Compose context, like when using `bentoctl`, using init containers i
 In this context, you can simply execute the image's entry point for the service(s) you need, this copies the files from 
 the image under Bento's `./lib` directory.
 
-For instance, from the root dir of a Bento deployment.
+Mount the local Bento `lib/` directory in the container, and set `ASSETS_LIB_DIR` to the mount path. Each asset
+is then copied to `$ASSETS_LIB_DIR/<source>` instead of its `target`.
+
+For instance, from the root dir of a Bento deployment:
 ```bash
-# Specify that the assets should be copied according to 'target_lib' targets
-export USE_LIB_TARGET=true
+# --user: so your user owns the copied files instead of 'root'
+# ASSETS_LIB_DIR: must match the container side of the -v mount
 
-# UID and GID so your user owns the copied files instead of 'root'
-export ASSETS_UID=$(id -u)
-export ASSETS_GID=$(id -g)
-
-# Set volume mappings
-export HOST_MOUNT=./lib               # local Bento lib/ dir
-export CONTAINER_MOUNT="/target-lib"  # top level parent dir of target_lib entries
-
-# Execute bento_assets entrypoint for ALL services
-# Omitting the service names in the entrypoint defaults to all services now.
-docker run --user $ASSETS_UID:$ASSETS_GID \
-  --rm \
-  -e USE_LIB_TARGET \
-  -v $HOST_MOUNT:$CONTAINER_MOUNT \
+# Execute bento_assets entrypoint for ALL services (the default when no service is given)
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -e ASSETS_LIB_DIR=/lib-assets \
+  -v ./lib:/lib-assets \
   ghcr.io/bento-platform/bento-assets-dev:edge
 
 # Execute bento_assets entrypoint for Web and Katsu only
-docker run --user $ASSETS_UID:$ASSETS_GID \
-  --rm \
-  -v $HOST_MOUNT:$CONTAINER_MOUNT \
-  -e USE_LIB_TARGET \
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -e ASSETS_LIB_DIR=/lib-assets \
+  -v ./lib:/lib-assets \
   ghcr.io/bento-platform/bento-assets-dev:edge \
   web katsu
 ```
