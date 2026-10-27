@@ -4,7 +4,7 @@ Copies an instance's assets for the given services to the paths those services r
 
 Sources and destinations are determined by the manifest.json file.
 
-Uses Python standard library packages only, making it possible to build ARM arch images 
+Uses Python standard library packages only, making it possible to build ARM arch images
 without QEMU emulation for speedup.
 """
 
@@ -17,13 +17,20 @@ from pathlib import Path
 
 MANIFEST = Path(os.environ.get("ASSETS_MANIFEST", "/assets/manifest.json"))
 SOURCE_DIR = Path(os.environ.get("ASSETS_SOURCE", "/assets/lib"))
-USE_TARGET_LIB = os.environ.get("USE_LIB_TARGET", "False").lower() in ("true", "1", "yes")
+USE_TARGET_LIB = os.environ.get("USE_LIB_TARGET", "False").lower() in (
+    "true",
+    "1",
+    "yes",
+)
 TARGET_LIB_DIR = Path("/target-lib")
+
 
 def main() -> int:
     manifest = json.loads(MANIFEST.read_text())
 
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument(
         "services",
         # pick 0 or n services by name
@@ -32,7 +39,8 @@ def main() -> int:
         # all services by default
         default=manifest.keys(),
         metavar="SERVICE",
-        help=f"Ignore for all, or one of: {', '.join(manifest)}")
+        help=f"Ignore for all, or one of: {', '.join(manifest)}",
+    )
     args = parser.parse_args()
 
     issues = []
@@ -49,7 +57,9 @@ def main() -> int:
             if not source.is_file():
                 if file.get("optional", False):
                     continue
-                issues.append(f"Error: {service} could not find required file {file['source']}")
+                issues.append(
+                    f"Error: {service} could not find required file {file['source']}"
+                )
 
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
