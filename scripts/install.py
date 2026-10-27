@@ -4,6 +4,12 @@ Copies an instance's assets for the given services to the paths those services r
 
 Sources and destinations are determined by the manifest.json file.
 
+By default, files are copied to their manifest `target` paths (init container mode).
+If ASSETS_LIB_DIR is set, files are copied under that directory using their `source` paths,
+which mirror Bento's lib/ layout (Docker Compose / bentoctl mode).
+
+Every required file is checked before copying, so nothing is copied if one is missing.
+
 Uses Python standard library packages only, making it possible to build ARM arch images
 without QEMU emulation for speedup.
 """
@@ -17,12 +23,7 @@ from pathlib import Path
 
 MANIFEST = Path(os.environ.get("ASSETS_MANIFEST", "/assets/manifest.json"))
 SOURCE_DIR = Path(os.environ.get("ASSETS_SOURCE", "/assets/lib"))
-USE_TARGET_LIB = os.environ.get("USE_LIB_TARGET", "False").lower() in (
-    "true",
-    "1",
-    "yes",
-)
-TARGET_LIB_DIR = Path("/target-lib")
+ASSETS_LIB_DIR = os.environ.get("ASSETS_LIB_DIR")
 
 
 def main() -> int:
@@ -43,33 +44,47 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    # First pass: resolve copies and check that every required file exists
+    copies = []
     issues = []
     for service in args.services:
         for file in manifest[service]:
             source = SOURCE_DIR / file["source"]
-            if USE_TARGET_LIB:
-                # preserve source structure
-                target = TARGET_LIB_DIR / file["source"]
-            else:
-                # use container target path
-                target = Path(file["target"])
-
             if not source.is_file():
-                if file.get("optional", False):
-                    continue
-                issues.append(
-                    f"Error: {service} could not find required file {file['source']}"
-                )
+                if not file.get("optional", False):
+                    issues.append(
+                        f"Error: {service} could not find required file {file['source']}"
+                    )
+                continue
 
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, target)
-            print(f"{file['source']} -> {target}")
+            if ASSETS_LIB_DIR:
+                # mirror Bento's lib/ layout
+                target = Path(ASSETS_LIB_DIR) / file["source"]
+            else:
+                # path in the service's container
+                target = Path(file["target"])
+            copies.append((source, target))
 
-    # Print issues and return 1 if any
     if issues:
         for issue in issues:
             print(issue, file=sys.stderr)
         return 1
+
+    # Second pass: copy
+    for source, target in copies:
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+        except OSError as e:
+            print(f"Error: could not copy {source} to {target}: {e.strerror}", file=sys.stderr)
+            if not ASSETS_LIB_DIR:
+                print(
+                    "hint: set ASSETS_LIB_DIR to copy under a mounted Bento lib/ directory "
+                    "instead of the container target paths",
+                    file=sys.stderr,
+                )
+            return 1
+        print(f"{source.relative_to(SOURCE_DIR)} -> {target}")
 
     return 0
 
