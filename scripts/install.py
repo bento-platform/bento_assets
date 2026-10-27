@@ -76,7 +76,10 @@ def main() -> int:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
         except OSError as e:
-            print(f"Error: could not copy {source} to {target}: {e.strerror}", file=sys.stderr)
+            print(
+                f"Error: could not copy {source} to {target}: {e.strerror}",
+                file=sys.stderr,
+            )
             if not ASSETS_LIB_DIR:
                 print(
                     "hint: set ASSETS_LIB_DIR to copy under a mounted Bento lib/ directory "
