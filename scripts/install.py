@@ -65,6 +65,11 @@ def main() -> int:
                 target = Path(file["target"])
             copies.append((source, target))
 
+    if ASSETS_LIB_DIR and not Path(ASSETS_LIB_DIR).is_dir():
+        issues.append(
+            f"Error: ASSETS_LIB_DIR {ASSETS_LIB_DIR} is not a mounted directory"
+        )
+
     if issues:
         for issue in issues:
             print(issue, file=sys.stderr)
