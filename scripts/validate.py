@@ -6,7 +6,7 @@ Usage: scripts/validate.py [INSTANCE...]   (default: every instance)
 
 Uses Python standard library packages only atm for simplicity.
 We may want to include dependencies later, e.g. to validate discovery configs.
-Would not impact ARM QEMU builds since this script only validates the assets 
+Would not impact ARM QEMU builds since this script only validates the assets
 before the build occurs.
 """
 
@@ -24,7 +24,9 @@ NAME_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 def validate(name: str, files: list[dict]) -> list[str]:
     if not NAME_PATTERN.match(name):
-        return ["the name may only contain lowercase letters, digits and single hyphens"]
+        return [
+            "the name may only contain lowercase letters, digits and single hyphens"
+        ]
 
     lib = INSTANCES_DIR / name / "lib"
     if not lib.is_dir():
@@ -37,7 +39,9 @@ def validate(name: str, files: list[dict]) -> list[str]:
             problems.append(f"missing required file lib/{file['source']}")
 
     listed = {file["source"] for file in files}
-    present = {path.relative_to(lib).as_posix() for path in lib.rglob("*") if path.is_file()}
+    present = {
+        path.relative_to(lib).as_posix() for path in lib.rglob("*") if path.is_file()
+    }
     for path in sorted(present - listed):
         problems.append(f"lib/{path} is not listed in manifest.json")
 
@@ -45,7 +49,9 @@ def validate(name: str, files: list[dict]) -> list[str]:
         try:
             json.loads(path.read_text())
         except ValueError as e:
-            problems.append(f"lib/{path.relative_to(lib).as_posix()} is not valid JSON: {e}")
+            problems.append(
+                f"lib/{path.relative_to(lib).as_posix()} is not valid JSON: {e}"
+            )
 
     return problems
 
@@ -54,7 +60,9 @@ def main() -> int:
     manifest = json.loads((REPO_ROOT / "manifest.json").read_text())
     files = [file for service_files in manifest.values() for file in service_files]
 
-    names = sys.argv[1:] or sorted(path.name for path in INSTANCES_DIR.iterdir() if path.is_dir())
+    names = sys.argv[1:] or sorted(
+        path.name for path in INSTANCES_DIR.iterdir() if path.is_dir()
+    )
 
     failed = False
     for name in names:
