@@ -28,6 +28,10 @@
       "optional": true
     },
     {
+      "source": "public/favicon.png",
+      "target": "/bento-public/dist/public/assets/icon_small.png"
+    },
+    {
       "source": "public/instance.css",
       "target": "/bento-public/public/public/styles/instance.css"
     },

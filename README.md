@@ -166,7 +166,7 @@ simply by publishing a new assets image.
 In a Docker Compose context, like when using `bentoctl`, using init containers is not necessary.
 
 Starting with Bento `v28`, `bentoctl` has an `init-assets` helper command for convenient use of `bento_assets` images, pulling `${BENTO_ASSETS_IMAGE}-<instance>:<version>`
-(defaults set by `BENTO_ASSETS_INSTANCE` and `BENTO_ASSETS_VERSION` in `local.env`):
+(defaults set by `BENTO_ASSETS_INSTANCE` and `BENTO_ASSETS_VERSION` in `etc/bento.env` and overrides in `local.env`):
 
 ```bash
 ./bentoctl.bash init-assets
