@@ -29,7 +29,7 @@
     },
     {
       "source": "public/favicon.png",
-      "target": "/bento-public/dist/public/assets/icon_small.png"
+      "target": "/bento-public/public/public/assets/icon_small.png"
     },
     {
       "source": "public/instance.css",
