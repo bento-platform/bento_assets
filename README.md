@@ -90,22 +90,26 @@ Changing `Dockerfile`, `LICENSE`, `manifest.json`, `scripts/install.py` or the b
 ## Versioning
 
 Release tags follow the `<instance>-<major>.<minor>.<patch>` pattern:
-- **major**: the Bento release the assets are for, e.g. `26` for Bento v26
+- **major**: the Bento release the assets are for, e.g. `28` for Bento v28
 - **minor**: content changes, such as new branding, translations or config
 - **patch**: small fixes, such as a typo or a corrected image
 
-For example: `dev-26.0.0`, then `dev-26.1.0` (new logo), `dev-26.1.1` (typo fix), then `dev-27.0.0` once `manifest.json` targets Bento v27.
+For example: `dev-28.0.0`, then `dev-28.1.0` (new logo), `dev-28.1.1` (typo fix), then `dev-29.0.0` once `manifest.json` targets Bento v29.
 
 When a Bento release changes its mounts, update `manifest.json` (and `instances/dev/` if needed) in one PR, then release each instance with the new major.
 
-Deployments can pin the major tag (e.g. `bento-assets-dev:26`) to follow the latest assets for their Bento release, or a full version to stay fixed.
+Deployments can pin the major tag (e.g. `bento-assets-dev:28`) to follow the latest assets for their Bento release, or a full version to stay fixed.
+
+> [!NOTE]
+> Starting with Bento v27, Bento Public is a Next.js app: its assets live under `/bento-public/public/public/`
+> (previously `/bento-public/dist/public/`), and its favicon is built into the image, so it is no longer an asset.
 
 ## Using the entrypoint to copy files to volumes
 
 The entrypoint copies the given services' files to the `target` paths in `manifest.json`. Run it as an init container, with a volume mounted where the files belong, then mount the same volume in the service's container:
 
 ```shell
-docker run --rm -v public-assets:/bento-public/dist/public ghcr.io/bento-platform/bento-assets-dev:edge public
+docker run --rm -v public-assets:/bento-public/public/public ghcr.io/bento-platform/bento-assets-dev:edge public
 ```
 
 - Overwrites existing files and skips missing optional ones.
@@ -138,7 +142,7 @@ assets:
   # Must be a key in manifest.json, e.g. "public"
   service: "public"
   # Directory the init container writes the service's files into
-  mountPath: "/bento-public/dist/public"
+  mountPath: "/bento-public/public/public"
   # Files destinations relative to mountPath
   files:
     - en_about.html
@@ -147,7 +151,6 @@ assets:
     - assets/branding.fr.png
     - assets/branding.lightbg.png
     - assets/branding.lightbg.fr.png
-    - assets/icon_small.png
     - styles/instance.css
     - locales/en/translation_en.json
     - locales/fr/translation_fr.json
@@ -162,29 +165,11 @@ simply by publishing a new assets image.
 
 In a Docker Compose context, like when using `bentoctl`, using init containers is not necessary.
 
-In this context, you can simply execute the image's entry point for the service(s) you need, this copies the files from 
-the image under Bento's `./lib` directory.
+Starting with Bento `v28`, `bentoctl` has an `init-assets` helper command for convenient use of `bento_assets` images, pulling `${BENTO_ASSETS_IMAGE}-<instance>:<version>`
+(defaults set by `BENTO_ASSETS_INSTANCE` and `BENTO_ASSETS_VERSION` in `local.env`):
 
-Mount the local Bento `lib/` directory in the container, and set `ASSETS_LIB_DIR` to the mount path. Each asset
-is then copied to `$ASSETS_LIB_DIR/<source>` instead of its `target`.
-
-For instance, from the root dir of a Bento deployment:
 ```bash
-# --user: so your user owns the copied files instead of 'root'
-# ASSETS_LIB_DIR: must match the container side of the -v mount
-
-# Execute bento_assets entrypoint for ALL services (the default when no service is given)
-docker run --rm \
-  --user "$(id -u):$(id -g)" \
-  -e ASSETS_LIB_DIR=/lib-assets \
-  -v ./lib:/lib-assets \
-  ghcr.io/bento-platform/bento-assets-dev:edge
-
-# Execute bento_assets entrypoint for Web and Katsu only
-docker run --rm \
-  --user "$(id -u):$(id -g)" \
-  -e ASSETS_LIB_DIR=/lib-assets \
-  -v ./lib:/lib-assets \
-  ghcr.io/bento-platform/bento-assets-dev:edge \
-  web katsu
+./bentoctl.bash init-assets
+./bentoctl.bash init-assets pcgl --version edge
+./bentoctl.bash init-assets pcgl --version pr-12 --service public
 ```
