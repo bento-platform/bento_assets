@@ -2,46 +2,46 @@
   "public": [
     {
       "source": "public/en_about.html",
-      "target": "/bento-public/dist/public/en_about.html"
+      "target": "/bento-public/public/public/en_about.html"
     },
     {
       "source": "public/fr_about.html",
-      "target": "/bento-public/dist/public/fr_about.html",
+      "target": "/bento-public/public/public/fr_about.html",
       "optional": true
     },
     {
       "source": "public/branding.png",
-      "target": "/bento-public/dist/public/assets/branding.png"
+      "target": "/bento-public/public/public/assets/branding.png"
     },
     {
       "source": "public/branding.fr.png",
-      "target": "/bento-public/dist/public/assets/branding.fr.png",
+      "target": "/bento-public/public/public/assets/branding.fr.png",
       "optional": true
     },
     {
       "source": "public/branding.lightbg.png",
-      "target": "/bento-public/dist/public/assets/branding.lightbg.png"
+      "target": "/bento-public/public/public/assets/branding.lightbg.png"
     },
     {
       "source": "public/branding.lightbg.fr.png",
-      "target": "/bento-public/dist/public/assets/branding.lightbg.fr.png",
+      "target": "/bento-public/public/public/assets/branding.lightbg.fr.png",
       "optional": true
     },
     {
       "source": "public/favicon.png",
-      "target": "/bento-public/dist/public/assets/icon_small.png"
+      "target": "/bento-public/public/public/assets/icon_small.png"
     },
     {
       "source": "public/instance.css",
-      "target": "/bento-public/dist/public/styles/instance.css"
+      "target": "/bento-public/public/public/styles/instance.css"
     },
     {
       "source": "public/translations/en.json",
-      "target": "/bento-public/dist/public/locales/en/translation_en.json"
+      "target": "/bento-public/public/public/locales/en/translation_en.json"
     },
     {
       "source": "public/translations/fr.json",
-      "target": "/bento-public/dist/public/locales/fr/translation_fr.json",
+      "target": "/bento-public/public/public/locales/fr/translation_fr.json",
       "optional": true
     }
   ],
