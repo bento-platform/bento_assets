@@ -355,6 +355,6 @@
     },
     "rules": {
         "count_threshold": 5,
-        "max_query_parameters": 2
+        "max_query_parameters": 1
     }
 }
